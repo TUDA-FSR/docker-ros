@@ -66,7 +66,7 @@ build_image() {
     # Build the Docker image
     # Don't use cache to make sure to always get the correct ros2 repository source key
     # Anyways, it wouldn't be much of an advantage, because the source code is always changing
-    docker buildx build --no-cache ${IMAGE} "${DOCKER_ARGS[@]}"
+    docker buildx build --no-cache "${DOCKER_ARGS[@]}"
     echo "Successfully built stage '${TARGET}' for platform '${PLATFORM}' as '${IMAGE}'"
 }
 
