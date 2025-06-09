@@ -10,6 +10,8 @@ build_image() {
     echo "Building stage '${TARGET}' for platform '${PLATFORM}' as '${IMAGE}' ..."
 
     DOCKER_ARGS=(
+      --no-cache
+      --pull
       --file "$(dirname "$0")/../docker/Dockerfile"
       --target "${TARGET}"
       --platform "${PLATFORM}"
@@ -23,8 +25,14 @@ build_image() {
     fi
 
     # required build args
-    DOCKER_ARGS+=( --build-arg "BASE_IMAGE=${DEPENDENCY_PROXY_IMAGE_PREFIX}/${BASE_IMAGE}" )
+    if [[ "${ENABLE_DEPENDENCY_PROXY}" == "true" && "${BASE_IMAGE}" != "${REGISTRY}"* ]]; then
+      DOCKER_ARGS+=( --build-arg "BASE_IMAGE=${DEPENDENCY_PROXY_IMAGE_PREFIX}/${BASE_IMAGE}" )
+    else
+      DOCKER_ARGS+=( --build-arg "BASE_IMAGE=${BASE_IMAGE}" )
+    fi
     DOCKER_ARGS+=( --build-arg "COMMAND=${COMMAND}" )
+    PROJECT_NAME="$(basename "${IMAGE%%:*}")"
+    DOCKER_ARGS+=( --build-arg "PROJECT_NAME=${PROJECT_NAME}" )
 
     # function to add "--build-arg NAME=VALUE" only if VALUE is non-empty
     add_arg_if_set() {
@@ -65,8 +73,8 @@ build_image() {
 
     # Build the Docker image
     # Don't use cache to make sure to always get the correct ros2 repository source key
-    # Anyways, it wouldn't be much of an advantage, because the source code is always changing
-    docker buildx build --no-cache "${DOCKER_ARGS[@]}"
+    # Anyways, it wouldn't be much of an advantage, because the source code is always changing in ci
+    docker buildx build "${DOCKER_ARGS[@]}"
     echo "Successfully built stage '${TARGET}' for platform '${PLATFORM}' as '${IMAGE}'"
 }
 

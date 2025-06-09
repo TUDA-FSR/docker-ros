@@ -4,7 +4,9 @@ set -e
 # source ROS workspace
 source /opt/ros/$ROS_DISTRO/setup.bash
 [[ -f /opt/ws_base_image/install/setup.bash ]] && source /opt/ws_base_image/install/setup.bash
-[[ -f $WORKSPACE/install/setup.bash ]] && source $WORKSPACE/install/setup.bash
+for f in /docker-ros/*/install/setup.bash; do \
+    if [[ -f "$f" ]]; then source "$f"; fi; \
+done
 
 # exec as dockeruser with configured UID/GID
 if [[ $DOCKER_UID && $DOCKER_GID ]]; then

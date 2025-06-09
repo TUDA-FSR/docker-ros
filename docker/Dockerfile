@@ -10,7 +10,8 @@ SHELL ["/bin/bash", "-c"]
 ARG DEBIAN_FRONTEND=noninteractive
 
 # create workspace folder structure
-ENV WORKSPACE=/docker-ros/ws
+ARG PROJECT_NAME
+ENV WORKSPACE=/docker-ros/$PROJECT_NAME
 WORKDIR $WORKSPACE
 RUN mkdir -p src/target src/upstream src/downstream
 
@@ -108,6 +109,9 @@ RUN if [[ $ENABLE_RECURSIVE_BEFORE_DEPENDENCY_INSTALLATION_SCRIPT == 'true' ]]; 
 
 # add list of rosdep dependencies to install script
 RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
+    for f in /docker-ros/*/install/setup.bash; do \
+        if [[ -f "$f" ]]; then source "$f"; fi; \
+    done && \
     apt-get update && \
     (rosdep init || true) && \
     rosdep update --rosdistro ${ROS_DISTRO} && \
@@ -178,8 +182,9 @@ ENV DOCKER_UID=
 ENV DOCKER_GID=
 
 # ROS setup
+ARG PROJECT_NAME
+ENV WORKSPACE=/docker-ros/$PROJECT_NAME
 ENV RCUTILS_COLORIZED_OUTPUT=1
-ENV WORKSPACE=/docker-ros/ws
 ENV COLCON_HOME=$WORKSPACE/.colcon
 WORKDIR $WORKSPACE
 
@@ -230,9 +235,6 @@ RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
     apt-get install -y python3-colcon-common-extensions && \
     rm -rf /var/lib/apt/lists/*
 
-# source ROS
-RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
-
 # install desired ROS 2 middleware
 ARG RMW_IMPLEMENTATION
 ENV RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION:-rmw_fastrtps_cpp}
@@ -271,7 +273,10 @@ FROM dev AS build
 
 ARG CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
 # build ROS workspace
-RUN source /opt/ros/${ROS_DISTRO}/setup.bash && \
+RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
+    for f in /docker-ros/*/install/setup.bash; do \
+        if [[ -f "$f" ]]; then source "$f"; fi; \
+    done && \
     [[ -f /opt/ws_base_image/install/setup.bash ]] && source /opt/ws_base_image/install/setup.bash ; \
     colcon build --cmake-args ${CMAKE_ARGS}
 
