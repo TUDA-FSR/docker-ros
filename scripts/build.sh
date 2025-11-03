@@ -51,6 +51,7 @@ build_image() {
     add_arg_if_set "BEFORE_DEPENDENCY_IDENTIFICATION_SCRIPT"
     add_arg_if_set "BEFORE_DEPENDENCY_INSTALLATION_SCRIPT"
     add_arg_if_set "BLACKLISTED_PACKAGES_FILE"
+    add_arg_if_set "BUILD_PACKAGES"
     add_arg_if_set "CMAKE_ARGS"
     add_arg_if_set "CUSTOM_SCRIPT_FILE"
     add_arg_if_set "DISABLE_ROS_INSTALLATION"

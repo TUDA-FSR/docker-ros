@@ -109,6 +109,7 @@ RUN if [[ $ENABLE_RECURSIVE_BEFORE_DEPENDENCY_INSTALLATION_SCRIPT == 'true' ]]; 
     fi
 
 # add list of rosdep dependencies to install script
+ARG BUILD_PACKAGES=""
 RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
     for f in /docker-ros/*/install/setup.bash; do \
         if [[ -f "$f" ]]; then source "$f"; fi; \
@@ -119,7 +120,8 @@ RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
     export OS="ubuntu:$(lsb_release -c | awk '{print $2}')" && \
     if [[ "$ROS_DISTRO" = "rolling" && "$OS" = "ubuntu:focal" ]]; then export OS="ubuntu:jammy"; fi && \
     set -o pipefail && \
-    PIP_BREAK_SYSTEM_PACKAGES=1 ROS_PACKAGE_PATH=$(pwd):$ROS_PACKAGE_PATH rosdep install --os $OS -y --simulate --from-paths src --ignore-src \
+    colcon list --packages-up-to $BUILD_PACKAGES --base-paths src --paths-only \
+    | PIP_BREAK_SYSTEM_PACKAGES=1 ROS_PACKAGE_PATH=$(pwd):$ROS_PACKAGE_PATH xargs rosdep install --os $OS -y --simulate --ignore-src --from-paths \
     | sed -E "s/'apt-get install -y ([^']+)' \(alternative 1\/1\)/apt-get install -y \1/" \
     | tee -a $WORKSPACE/.install-dependencies.sh && \
     rm -rf /var/lib/apt/lists/*
@@ -272,6 +274,7 @@ CMD ["bash"]
 ############ build #############################################################
 FROM dev AS build
 
+ARG BUILD_PACKAGES=""
 ARG CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release"
 # build ROS workspace
 RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
@@ -279,7 +282,7 @@ RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
         if [[ -f "$f" ]]; then source "$f"; fi; \
     done && \
     [[ -f /opt/ws_base_image/install/setup.bash ]] && source /opt/ws_base_image/install/setup.bash ; \
-    colcon build --cmake-args ${CMAKE_ARGS}
+    colcon build --packages-up-to $BUILD_PACKAGES --cmake-args $CMAKE_ARGS
 
 ############ run ###############################################################
 FROM dependencies-install AS run
