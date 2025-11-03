@@ -55,8 +55,8 @@ ARG GIT_HTTPS_SERVER=
 ARG GIT_HTTPS_USER=
 ARG GIT_HTTPS_PASSWORD=
 RUN if [[ -n ${GIT_HTTPS_SERVER} ]]; then \
-        git config --global url.https://${GIT_HTTPS_USER}:${GIT_HTTPS_PASSWORD}@${GIT_HTTPS_SERVER}.insteadOf https://${GIT_HTTPS_SERVER} ; \
-        git config --global url.https://${GIT_HTTPS_USER}:${GIT_HTTPS_PASSWORD}@${GIT_HTTPS_SERVER}.insteadOf git@${GIT_HTTPS_SERVER}: ; \
+        git config --global url.https://${GIT_HTTPS_USER}:${GIT_HTTPS_PASSWORD}@${GIT_HTTPS_SERVER}/.insteadOf https://${GIT_HTTPS_SERVER}/ ; \
+        git config --global url.https://${GIT_HTTPS_USER}:${GIT_HTTPS_PASSWORD}@${GIT_HTTPS_SERVER}/.insteadOf git@${GIT_HTTPS_SERVER}: ; \
     fi
 ARG GIT_SSH_PRIVATE_KEY=
 ARG GIT_SSH_KNOWN_HOST_KEYS=
