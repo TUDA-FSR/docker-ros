@@ -40,6 +40,7 @@ variables:
   GIT_SSH_PRIVATE_KEY:        ''                                      # SSH private key for cloning private Git repositories via SSH
   ENABLE_DEPENDENCY_PROXY:    'false'                                  # Enable usage of dependency proxy for pulling images
   DEPENDENCY_PROXY_IMAGE_PREFIX: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}  # Dependency proxy image prefix
+  DEPENDENCY_PROXY_TOKEN:     ${CI_DEPENDENCY_PROXY_PASSWORD}         # Access token with permissions for reading from the dependency proxy
   IMAGE_NAME:                 ${CI_REGISTRY_IMAGE}                    # Image name of run image
   IMAGE_TAG:                  latest                                  # Image tag of run image
   PLATFORM:                   amd64                                   # Target platform architecture (comma-separated list) [amd64|arm64|...]
@@ -113,7 +114,7 @@ default:
         cd -
       fi
     - echo "${REGISTRY_PASSWORD}" | docker login ${REGISTRY} -u ${REGISTRY_USER} --password-stdin
-    - echo "${CI_DEPENDENCY_PROXY_PASSWORD}" | docker login ${CI_DEPENDENCY_PROXY_SERVER} -u ${CI_DEPENDENCY_PROXY_USER} --password-stdin
+    - echo "${DEPENDENCY_PROXY_TOKEN}" | docker login ${CI_DEPENDENCY_PROXY_SERVER} -u ${CI_DEPENDENCY_PROXY_USER} --password-stdin
     - docker context create docker-ros-context
     - docker buildx create docker-ros-context --driver docker-container --driver-opt default-load=true --name docker-ros-builder --use
     - echo -e "section_end:`date +%s`:setup_section\r\e[0K"
