@@ -329,6 +329,8 @@ Slim run-arm64:
   rules:
     - if: $PLATFORM == '' || $TARGET == ''
       when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
   script:
     - |-
       if [[ "${PLATFORM}" =~ amd64 && "${PLATFORM}" =~ arm64 ]]; then
@@ -382,10 +384,7 @@ Push CI:
   stage: Push Multi-Arch Images
   extends: .push
   rules:
-    - !reference [.push, rules]
-    - if: $CI_COMMIT_TAG
-      when: never
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+    - when: never  # Disabled to prevent pushes on non-default branches
   variables:
     IMG_DEV: ${_IMAGE_DEV_CI}
     IMG_RUN: ${_IMAGE_RUN_CI}
