@@ -131,9 +131,13 @@ default:
         fi
       fi
       TARGET=${_TARGET} PLATFORM=${_PLATFORM} ./docker/docker-ros/scripts/ci.sh
-      echo -e "section_start:`date +%s`:push_section[collapsed=true]\r\e[0K[docker-ros] Push ${IMAGE}"
-      docker push ${IMAGE}
-      echo -e "section_end:`date +%s`:push_section\r\e[0K"
+      if [[ "${CI_COMMIT_BRANCH}" == "${CI_DEFAULT_BRANCH}" || -n "${CI_COMMIT_TAG}" ]]; then
+        echo -e "section_start:`date +%s`:push_section[collapsed=true]\r\e[0K[docker-ros] Push ${IMAGE}"
+        docker push ${IMAGE}
+        echo -e "section_end:`date +%s`:push_section\r\e[0K"
+      else
+        echo "[docker-ros] Skipping push for non-default branch"
+      fi
 
 dev-amd64:
   stage: Build dev Images
@@ -380,15 +384,20 @@ Slim run-arm64:
         fi
       fi
 
-Push CI:
-  stage: Push Multi-Arch Images
-  extends: .push
-  rules:
-    - when: never  # Disabled to prevent pushes on non-default branches
-  variables:
-    IMG_DEV: ${_IMAGE_DEV_CI}
-    IMG_RUN: ${_IMAGE_RUN_CI}
-    IMG_SLIM: ${_IMAGE_SLIM_CI}
+# Disabled since we don't want to push on non-default branches in CI to avoid clutter
+
+# Push CI:
+#   stage: Push Multi-Arch Images
+#   extends: .push
+#   rules:
+#     - !reference [.push, rules]
+#     - if: $CI_COMMIT_TAG
+#       when: never
+#     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+#   variables:
+#     IMG_DEV: ${_IMAGE_DEV_CI}
+#     IMG_RUN: ${_IMAGE_RUN_CI}
+#     IMG_SLIM: ${_IMAGE_SLIM_CI}
 
 Push:
   stage: Push Multi-Arch Images
