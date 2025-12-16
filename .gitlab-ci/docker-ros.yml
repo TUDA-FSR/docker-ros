@@ -89,12 +89,13 @@ variables:
 
 
 stages:
+  - PRE docker-ros
   - Build dev Images
   - Build run Images
   - Test ROS Industrial CI
   - Slim Images
   - Push Multi-Arch Images
-  - Follow Up
+  - POST docker-ros
 
 
 default:
