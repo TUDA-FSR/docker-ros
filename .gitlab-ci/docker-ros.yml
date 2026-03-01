@@ -7,7 +7,6 @@ workflow:
     - if: $CI_COMMIT_BRANCH                             # run branch pipeline if triggered by commit
     - if: $CI_COMMIT_TAG                                # run tag pipeline with specific image tags if triggered by tag
 
-
 variables:
   ADDITIONAL_DEBS_FILE:       docker/additional-debs.txt              # Relative filepath to file containing additional apt deb packages to install
   ADDITIONAL_FILES_DIR:       docker/additional-files                 # Relative path to directory containing additional files to copy into image"
@@ -87,6 +86,11 @@ variables:
   DOCKER_BUILDKIT: 1
   GIT_SUBMODULE_STRATEGY: recursive
 
+  # This variable is shared by both the DinD service and Docker client.
+  # For the service, it will instruct DinD to create `docker.sock` here.
+  # For the client, it tells the Docker client which Docker Unix socket to connect to.
+  DOCKER_HOST: "unix:///runner/services/docker/docker.sock"
+
 
 stages:
   - PRE docker-ros
@@ -99,6 +103,8 @@ stages:
 
 
 default:
+  services:
+    - docker:29-dind
   tags:
     - privileged
     - amd64
