@@ -6,4 +6,4 @@ This repo is used for Continuous Intergration / Continuous Development (CI/CD) b
 
 ## Supported GitLab Runner Configuration
 
-The GitLab workflow expects a runner service that uses [Docker in Docker with Unix Socket Binding](https://docs.gitlab.com/ci/docker/using_docker_build/#use-docker-socket-binding). To use it with a different runner config, you need to overwrite the `DOCKER_HOST` variable. However, the default's job [DinD service](https://github.com/TUDA-FSR/docker-ros/blob/main/.gitlab-ci/docker-ros.yml#L107) might still interfer with other approaches.
+The GitLab workflow expects a runner service that uses [Docker in Docker with a Unix Socket on a Shared Volume](https://docs.gitlab.com/ci/docker/using_docker_build/#use-a-unix-socket-on-a-shared-volume-between-docker-in-docker-and-build-container). To use it with a different runner config, you need to overwrite the `DOCKER_HOST` variable. However, the default job's [DinD service](https://github.com/TUDA-FSR/docker-ros/blob/main/.gitlab-ci/docker-ros.yml#L107) might still interfer with other approaches.
