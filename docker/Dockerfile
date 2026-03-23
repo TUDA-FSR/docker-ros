@@ -295,6 +295,9 @@ COPY --from=build $WORKSPACE/install install
 RUN ldconfig
 RUN echo "[[ -f $WORKSPACE/install/setup.bash ]] && source $WORKSPACE/install/setup.bash" >> ~/.bashrc
 
+# setup default working dir
+WORKDIR /docker-ros/ws
+
 # setup command
 ARG COMMAND
 ENV DEFAULT_CMD=${COMMAND}
