@@ -2,9 +2,10 @@
 set -e
 
 # source ROS workspace
-source /opt/ros/$ROS_DISTRO/setup.bash
-[[ -f /opt/ws_base_image/install/setup.bash ]] && source /opt/ws_base_image/install/setup.bash
-for f in /docker-ros/*/install/setup.bash; do \
+source /opt/ros/$ROS_DISTRO/setup.sh
+
+# source all existing docker-ros package layers
+for f in /docker-ros/*/install/local_setup.sh; do \
     if [[ -f "$f" ]]; then source "$f"; fi; \
 done
 
