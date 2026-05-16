@@ -46,7 +46,7 @@ variables:
   PLATFORM:                   amd64                                   # Target platform architecture (comma-separated list) [amd64|arm64|...]
   REGISTRY_PASSWORD:          ${CI_REGISTRY_PASSWORD}                 # Docker registry password
   REGISTRY_USER:              ${CI_REGISTRY_USER}                     # Docker registry username
-  REGISTRY:                   ${CI_REGISTRY}                          # Docker registry to push images to
+  REGISTRY:                   ${CI_REGISTRY}                          # Docker registry to login to
   RMW_IMPLEMENTATION:         'rmw_fastrtps_cpp'                      # RMW implementation to use (only for ROS 2)
   ROS_DISTRO:                 ''                                      # ROS Distro (required if ROS is not installed in `base-image`)
   SLIM_BUILD_ARGS:            '--sensor-ipc-mode proxy --continue-after=10 --show-clogs --http-probe=false --include-path /opt/ros --include-path /docker-ros/ws/install'  # Arguments to `slim build` (except for `--target` and `--tag`)
@@ -121,7 +121,8 @@ default:
         git checkout FETCH_HEAD
         cd -
       fi
-    - echo "${REGISTRY_PASSWORD}" | docker login ${REGISTRY} -u ${REGISTRY_USER} --password-stdin
+    - echo "${CI_REGISTRY_PASSWORD}" | docker login ${CI_REGISTRY} -u ${CI_REGISTRY_USER} --password-stdin # Always login using the default permissions for this project's registry
+    - echo "${REGISTRY_PASSWORD}" | docker login ${REGISTRY} -u ${REGISTRY_USER} --password-stdin # Cusomizable registry login
     - |-
       if [[ "${ENABLE_DEPENDENCY_PROXY}" == "true" ]]; then
         echo "${DEPENDENCY_PROXY_TOKEN}" | docker login ${CI_DEPENDENCY_PROXY_SERVER} -u ${DEPENDENCY_PROXY_USER} --password-stdin
