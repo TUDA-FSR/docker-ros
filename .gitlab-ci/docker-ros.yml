@@ -351,6 +351,9 @@ Slim run-arm64:
       when: never
   script:
     - |-
+      # Always log in to project registry before trying to push to regain push access if login was overridden during default job
+      # This is only relevant if trying to push to project registry (which is probably most common)
+      echo "${CI_REGISTRY_PASSWORD}" | docker login ${CI_REGISTRY} -u ${CI_REGISTRY_USER} --password-stdin
       if [[ "${PLATFORM}" =~ amd64 && "${PLATFORM}" =~ arm64 ]]; then
         if [[ "${TARGET}" =~ dev ]]; then
           docker manifest create ${IMG_DEV} --amend ${_IMAGE_DEV_CI_AMD64} --amend ${_IMAGE_DEV_CI_ARM64}
