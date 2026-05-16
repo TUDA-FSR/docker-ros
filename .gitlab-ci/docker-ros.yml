@@ -144,6 +144,9 @@ default:
       TARGET=${_TARGET} PLATFORM=${_PLATFORM} ./docker/docker-ros/scripts/ci.sh
       if [[ "${CI_COMMIT_BRANCH}" == "${CI_DEFAULT_BRANCH}" || -n "${CI_COMMIT_TAG}" ]]; then
         echo -e "section_start:`date +%s`:push_section[collapsed=true]\r\e[0K[docker-ros] Push ${IMAGE}"
+        # Always log in to project registry before trying to push to regain push access if login was overridden during default job
+        # This is only relevant if trying to push to project registry (which is probably most common)
+        echo "${CI_REGISTRY_PASSWORD}" | docker login ${CI_REGISTRY} -u ${CI_REGISTRY_USER} --password-stdin
         docker push ${IMAGE}
         echo -e "section_end:`date +%s`:push_section\r\e[0K"
       else
