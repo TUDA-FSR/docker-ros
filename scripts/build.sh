@@ -25,7 +25,7 @@ build_image() {
     fi
 
     # required build args
-    if [[ "${ENABLE_DEPENDENCY_PROXY}" == "true" && "${BASE_IMAGE}" != "${REGISTRY}"* ]]; then
+    if [[ "${ENABLE_DEPENDENCY_PROXY}" == "true" && ( -z "${CI_REGISTRY}" || "${BASE_IMAGE}" != "${CI_REGISTRY}"* ) && ( -z "${EXTRA_REGISTRY}" || "${BASE_IMAGE}" != "${EXTRA_REGISTRY}"* ) ]]; then
       DOCKER_ARGS+=( --build-arg "BASE_IMAGE=${DEPENDENCY_PROXY_IMAGE_PREFIX}/${BASE_IMAGE}" )
     else
       DOCKER_ARGS+=( --build-arg "BASE_IMAGE=${BASE_IMAGE}" )

@@ -32,6 +32,9 @@ variables:
   ENABLE_RECURSIVE_VCS_IMPORT: 'true'                                 # Enable recursive discovery of files named `*.repos`
   ENABLE_SINGLEARCH_PUSH:     'false'                                 # Enable push of single arch images with [-amd64|-arm64] postfix
   ENABLE_SLIM:                'true'                                  # Enable an extra slimmed run image via slim (only if run stage is targeted)
+  EXTRA_REGISTRY:             ''                                      # Additional Docker registry to login to using `EXTRA_REGISTRY_USER` and `EXTRA_REGISTRY_PASSWORD` (`CI_REGISTRY` is logged in to using the CI job token, unless `EXTRA_REGISTRY` equals `CI_REGISTRY`, in which case `EXTRA_REGISTRY_USER` and `EXTRA_REGISTRY_PASSWORD` are used for it instead)
+  EXTRA_REGISTRY_PASSWORD:    ${CI_REGISTRY_PASSWORD}                 # Docker registry password for `EXTRA_REGISTRY`
+  EXTRA_REGISTRY_USER:        ${CI_REGISTRY_USER}                     # Docker registry username for `EXTRA_REGISTRY`
   GIT_HTTPS_PASSWORD:         ${CI_JOB_TOKEN}                         # Password for cloning private Git repositories via HTTPS
   GIT_HTTPS_SERVER:           ${CI_SERVER_HOST}                       # Server hostname for cloning private Git repositories via HTTPS (e.g. 'git-ce.rwth-aachen.de')
   GIT_HTTPS_USER:             gitlab-ci-token                         # Username for cloning private Git repositories via HTTPS
@@ -44,9 +47,6 @@ variables:
   IMAGE_NAME:                 ${CI_REGISTRY_IMAGE}                    # Image name of run image
   IMAGE_TAG:                  latest                                  # Image tag of run image
   PLATFORM:                   amd64                                   # Target platform architecture (comma-separated list) [amd64|arm64|...]
-  REGISTRY_PASSWORD:          ${CI_REGISTRY_PASSWORD}                 # Docker registry password
-  REGISTRY_USER:              ${CI_REGISTRY_USER}                     # Docker registry username
-  REGISTRY:                   ${CI_REGISTRY}                          # Docker registry to login to
   RMW_IMPLEMENTATION:         'rmw_fastrtps_cpp'                      # RMW implementation to use (only for ROS 2)
   ROS_DISTRO:                 ''                                      # ROS Distro (required if ROS is not installed in `base-image`)
   SLIM_BUILD_ARGS:            '--sensor-ipc-mode proxy --continue-after=10 --show-clogs --http-probe=false --include-path /opt/ros --include-path /docker-ros/ws/install'  # Arguments to `slim build` (except for `--target` and `--tag`)
@@ -121,8 +121,13 @@ default:
         git checkout FETCH_HEAD
         cd -
       fi
-    - echo "${CI_REGISTRY_PASSWORD}" | docker login ${CI_REGISTRY} -u ${CI_REGISTRY_USER} --password-stdin # Always login using the default permissions for this project's registry
-    - echo "${REGISTRY_PASSWORD}" | docker login ${REGISTRY} -u ${REGISTRY_USER} --password-stdin # Cusomizable registry login
+    - |-
+      if [[ "${EXTRA_REGISTRY}" != "${CI_REGISTRY}" ]]; then
+        echo "${CI_REGISTRY_PASSWORD}" | docker login ${CI_REGISTRY} -u ${CI_REGISTRY_USER} --password-stdin
+      fi
+      if [[ -n "${EXTRA_REGISTRY}" ]]; then
+        echo "${EXTRA_REGISTRY_PASSWORD}" | docker login ${EXTRA_REGISTRY} -u ${EXTRA_REGISTRY_USER} --password-stdin
+      fi
     - |-
       if [[ "${ENABLE_DEPENDENCY_PROXY}" == "true" ]]; then
         echo "${DEPENDENCY_PROXY_TOKEN}" | docker login ${CI_DEPENDENCY_PROXY_SERVER} -u ${DEPENDENCY_PROXY_USER} --password-stdin
@@ -144,9 +149,6 @@ default:
       TARGET=${_TARGET} PLATFORM=${_PLATFORM} ./docker/docker-ros/scripts/ci.sh
       if [[ "${CI_COMMIT_BRANCH}" == "${CI_DEFAULT_BRANCH}" || -n "${CI_COMMIT_TAG}" ]]; then
         echo -e "section_start:`date +%s`:push_section[collapsed=true]\r\e[0K[docker-ros] Push ${IMAGE}"
-        # Always log in to project registry before trying to push to regain push access if login was overridden during default job
-        # This is only relevant if trying to push to project registry (which is probably most common)
-        echo "${CI_REGISTRY_PASSWORD}" | docker login ${CI_REGISTRY} -u ${CI_REGISTRY_USER} --password-stdin
         docker push ${IMAGE}
         echo -e "section_end:`date +%s`:push_section\r\e[0K"
       else
@@ -351,9 +353,6 @@ Slim run-arm64:
       when: never
   script:
     - |-
-      # Always log in to project registry before trying to push to regain push access if login was overridden during default job
-      # This is only relevant if trying to push to project registry (which is probably most common)
-      echo "${CI_REGISTRY_PASSWORD}" | docker login ${CI_REGISTRY} -u ${CI_REGISTRY_USER} --password-stdin
       if [[ "${PLATFORM}" =~ amd64 && "${PLATFORM}" =~ arm64 ]]; then
         if [[ "${TARGET}" =~ dev ]]; then
           docker manifest create ${IMG_DEV} --amend ${_IMAGE_DEV_CI_AMD64} --amend ${_IMAGE_DEV_CI_ARM64}
