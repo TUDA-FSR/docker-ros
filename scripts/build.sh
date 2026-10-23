@@ -31,7 +31,8 @@ build_image() {
       DOCKER_ARGS+=( --build-arg "BASE_IMAGE=${BASE_IMAGE}" )
     fi
     DOCKER_ARGS+=( --build-arg "COMMAND=${COMMAND}" )
-    PROJECT_NAME="$(basename "${IMAGE%%:*}")"
+    PROJECT_NAME="${IMAGE##*/}"      # strip registry host (may contain a port) and namespace
+    PROJECT_NAME="${PROJECT_NAME%%:*}"  # strip tag
     DOCKER_ARGS+=( --build-arg "PROJECT_NAME=${PROJECT_NAME}" )
 
     # function to add "--build-arg NAME=VALUE" only if VALUE is non-empty

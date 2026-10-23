@@ -297,7 +297,7 @@ RUN ldconfig
 RUN echo "[[ -f $WORKSPACE/install/setup.bash ]] && source $WORKSPACE/install/setup.bash" >> ~/.bashrc
 
 # setup default working dir
-WORKDIR /docker-ros/ws
+WORKDIR $WORKSPACE
 
 # setup command
 ARG COMMAND
